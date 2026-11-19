@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사진 쉽게 보기 — 다이얼을 돌려 그때로</title>
+<meta name="description" content="휴대폰에 쌓인 수천 장의 사진, 다이얼 하나로 그때로. 말로 찾고, 꾸욱 눌러 앨범을 만들고, 버튼 하나로 크게 봅니다. 사진은 휴대폰 밖으로 나가지 않습니다.">
+<meta property="og:title" content="사진 쉽게 보기 — 다이얼을 돌려 그때로">
+<meta property="og:description" content="수천 장 사진, 다이얼 하나로 그때로.">
+<meta property="og:image" content="images/og.jpg">
+<link rel="icon" href="images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 2026-11-20 1차. 말꼬 홈페이지 구성(브랜드 → 기획 의도 → 앱 소개 → 약속 → 처음 쓰는 날 → 베타 신청)을 따르고,
+     모양은 앱 그대로: 가죽 바탕 · 황동 다이얼 · 필름 띠. 방문 분석·광고·쿠키 없음. -->
+<style>
+:root{
+  --leather:#3A2414; --leather-deep:#1E120A; --night:#140D08;
+  --paper:#F5ECDD; --paper-2:#EFE2CC; --card:#FFFBF4; --ink:#2A1B10; --sub:#5C4634; --faint:#7A6250;
+  --brass:#D9A85B; --brass-hi:#F3D79C; --brass-deep:#9A6B2A; --brass-ink:#7A4F14;
+  --line:#E2D2B8; --ok:#3E7A4E; --no:#A5432F;
+  --display:'Gowun Batang','Noto Serif KR',serif;
+  --body:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:var(--brass-ink)}
+:focus-visible{outline:3px solid var(--brass);outline-offset:3px;border-radius:6px}
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;line-height:1.3;margin:0;text-wrap:balance}
+p{margin:0}
+.wrap{width:100%;max-width:1080px;margin:0 auto;padding-inline:20px}
+.gold{color:var(--brass-hi)}
+.ic{width:24px;height:24px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.leather{background:radial-gradient(ellipse at 60% 40%,rgba(0,0,0,0) 10%,rgba(0,0,0,.55) 100%),url(images/leather.jpg) center/700px,var(--leather);color:#F6E9D3}
+
+/* 필름 띠 */
+.film{height:26px;background:linear-gradient(#2A1D13,#0E0905 20%,#0E0905 80%,#2A1D13);position:relative}
+.film::before{content:"";position:absolute;inset:6px 0;background:repeating-linear-gradient(90deg,transparent 0 14px,#E9D7B5 14px 30px,transparent 30px 44px);opacity:.85;
+  -webkit-mask:linear-gradient(#000,#000);mask:linear-gradient(#000,#000);border-radius:2px;height:14px}
+
+/* 위 막대 */
+.top{position:sticky;top:0;z-index:10;background:rgba(30,18,10,.94);backdrop-filter:blur(6px);border-bottom:1px solid rgba(217,168,91,.35)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;min-height:64px;flex-wrap:wrap;padding-block:8px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#F6E9D3}
+.logo img{width:36px;height:36px;border-radius:9px}
+.logo span{font-family:var(--display);font-weight:700;font-size:22px;line-height:1}
+.nav{display:flex;gap:4px 18px;flex-wrap:wrap;font-size:15px}
+.nav a{color:#EADBC0;text-decoration:none;padding:6px 0}
+.nav a:hover{color:var(--brass-hi)}
+
+/* 버튼 */
+.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 24px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none;border:0;cursor:pointer;font-family:inherit}
+.btn .ic{width:20px;height:20px}
+.btn.primary{background:linear-gradient(#F3D79C,#D9A85B 55%,#B98538);color:#2A1B10;box-shadow:0 2px 0 #7A4F14,0 8px 18px rgba(0,0,0,.25)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.ghost{background:rgba(255,255,255,.06);color:#F6E9D3;box-shadow:inset 0 0 0 2px rgba(243,215,156,.6)}
+.btn.line{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+
+/* 첫 화면 */
+.hero{position:relative;overflow:hidden;padding:56px 0 64px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(34px,5.2vw,56px);letter-spacing:-.01em}
+.hero .lead{margin:20px 0 30px;font-size:19px;color:#EADBC0}
+.hero-art{position:relative;height:560px}
+.phone{position:absolute;width:250px;border-radius:30px;box-shadow:0 0 0 7px #120B05,0 0 0 9px rgba(243,215,156,.55),0 30px 60px rgba(0,0,0,.6)}
+.phone.p1{left:2%;top:10px;transform:rotate(-4deg)}
+.phone.p2{right:2%;top:70px;transform:rotate(4deg);width:230px}
+.hero-card{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);background:var(--card);color:var(--ink);border-radius:18px;padding:14px 20px 16px;box-shadow:0 18px 40px rgba(0,0,0,.45);min-width:250px;text-align:center}
+.hero-card .from{font-size:13px;color:var(--faint);display:flex;align-items:center;justify-content:center;gap:6px}
+.hero-card .from .ic{width:16px;height:16px;color:var(--brass-deep)}
+.hero-card .say{font-family:var(--display);font-size:22px;font-weight:700;margin-top:4px}
+.hero-card .wave{display:flex;gap:4px;justify-content:center;margin-top:8px;height:22px;align-items:center}
+.hero-card .wave i{width:4px;border-radius:2px;background:var(--brass);animation:w 1.1s ease-in-out infinite}
+.hero-card .wave i:nth-child(2n){animation-delay:-.4s}.hero-card .wave i:nth-child(3n){animation-delay:-.7s}
+@keyframes w{0%,100%{height:6px}50%{height:22px}}
+@media (prefers-reduced-motion:reduce){.hero-card .wave i{animation:none;height:14px}}
+
+/* 공통 구획 */
+.band{padding:84px 0}
+.band.white{background:var(--card)}
+.band.cream{background:var(--paper)}
+.eyebrow{display:inline-block;font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--brass-ink);background:linear-gradient(#FBEBC8,#F1D9A6);padding:4px 12px;border-radius:999px;margin-bottom:14px}
+.band h2{font-size:clamp(28px,3.8vw,40px)}
+.intro{margin-top:12px;color:var(--sub);max-width:720px}
+
+/* 다섯 가지 */
+.values{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
+.value{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px 18px}
+.value .ic{width:30px;height:30px;color:var(--brass-deep)}
+.value h3{font-size:19px;margin:12px 0 6px}
+.value p{font-size:15px;color:var(--sub);line-height:1.6}
+
+/* 기획 의도 */
+.story{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:32px}
+.story article{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 26px 24px}
+.story .label{font-size:14px;font-weight:700;color:var(--brass-ink);margin-bottom:6px}
+.story h3{font-size:22px;margin-bottom:12px}
+.story p+p{margin-top:10px}
+.story .turn{font-family:var(--display);font-size:19px;font-weight:700;color:var(--ink);border-left:4px solid var(--brass);padding-left:12px;margin-top:14px}
+.sub-title{font-size:24px;margin:56px 0 18px}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.step-no{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:radial-gradient(circle at 35% 30%,#F8E3B3,#D9A85B 60%,#9A6B2A);color:#2A1B10}
+.step h4{font-size:20px;margin:12px 0 10px}
+.step p{font-size:15px;color:var(--sub)}
+.viz{height:120px;border-radius:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 8px;overflow:hidden}
+.viz-dial{background:#2A1B10}
+.knob{width:62px;height:62px;flex:0 0 auto;border-radius:50%;background:radial-gradient(circle at 38% 32%,#FFF0C8,#E2B568 40%,#9A6B2A 80%,#5E3E15);box-shadow:0 0 0 5px #3A2414,0 0 0 7px #C8954A;position:relative}
+.knob::after{content:"";position:absolute;left:50%;top:8px;width:4px;height:20px;margin-left:-2px;border-radius:2px;background:#3A2414;transform-origin:2px 27px;transform:rotate(40deg)}
+.viz-dial .yr{color:#F3D79C;font-family:var(--display);font-size:15px;line-height:1.5;text-align:left}
+.viz-dial .yr b{font-size:17px;display:block;white-space:nowrap}
+.viz-voice{background:var(--paper-2);flex-direction:column;gap:6px}
+.viz-voice .q{background:var(--card);border-radius:12px;padding:6px 12px;font-size:15px;font-weight:500}
+.viz-voice .tags{display:flex;gap:6px}
+.viz-voice .tags span{font-size:13px;padding:2px 10px;border-radius:999px;background:#3A2414;color:#F3D79C}
+.viz-press{background:var(--paper-2)}
+.viz-share{background:var(--paper-2)}
+.viz-share .reel{display:flex;gap:3px;background:#120B05;padding:8px 6px;border-radius:6px}
+.viz-share .reel i{width:18px;height:28px;border-radius:3px;background:url(images/screens/found.jpg) 30% 30%/200px}
+.viz-share .reel i:nth-child(2){background-position:60% 40%}.viz-share .reel i:nth-child(3){background-position:80% 70%}
+.viz-share .arrow{font-size:22px;color:var(--brass-deep)}
+.viz-share .album{white-space:nowrap;background:var(--card);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.viz-press .tile{width:56px;height:56px;border-radius:10px;background:url(images/screens/found.jpg) 50% 24%/260px;box-shadow:0 0 0 3px var(--brass)}
+.viz-press .arrow{font-size:22px;color:var(--brass-deep)}
+.viz-press .album{white-space:nowrap;background:var(--card);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.origin{display:flex;gap:14px;align-items:flex-start;margin-top:22px;background:var(--paper-2);border-radius:16px;padding:18px 20px}
+.origin .ic{color:var(--brass-deep);margin-top:4px}
+
+/* 앱 소개 */
+.shots{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:34px}
+.shots figure{margin:0}
+.shot{border-radius:22px;overflow:hidden;box-shadow:0 0 0 5px #120B05,0 0 0 7px rgba(217,168,91,.6),0 16px 30px rgba(0,0,0,.25);background:#120B05}
+.shots figcaption{margin-top:16px;font-size:14px;color:var(--sub);line-height:1.5}
+.shots figcaption b{display:block;font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:2px}
+.shots-note{margin-top:18px;font-size:14px;color:var(--faint)}
+.switch{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:34px;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+.switch h3{font-size:21px}
+.switch p{color:var(--sub);font-size:15px}
+.switch .pill{display:inline-flex;border-radius:999px;background:#3A2414;padding:4px;gap:4px;margin-left:auto}
+.switch .pill span{padding:6px 14px;border-radius:999px;font-size:14px;color:#EADBC0}
+.switch .pill span.on{background:var(--brass);color:#2A1B10;font-weight:700}
+
+/* 약속 */
+.promise{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:32px}
+.pcard{background:rgba(255,248,235,.06);border:1px solid rgba(243,215,156,.28);border-radius:20px;padding:24px}
+.pcard h3{display:flex;gap:10px;align-items:center;font-size:20px;color:#F6E9D3;margin-bottom:12px}
+.pcard.in h3 .ic{color:#9FD3A8}.pcard.out h3 .ic{color:var(--brass-hi)}.pcard.no h3 .ic{color:#F0A08C}
+.pcard ul{margin:0;padding-left:18px;color:#E6D6BB;font-size:15px;line-height:1.7}
+.pcard li+li{margin-top:6px}
+.leather .intro{color:#E6D6BB}
+.leather .eyebrow{background:rgba(243,215,156,.16);color:var(--brass-hi)}
+
+/* 처음 쓰는 날·베타 */
+.setup{list-style:none;padding:0;margin:30px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.setup li{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;font-weight:500;line-height:1.55}
+.band.white .setup li{background:var(--paper)}
+.setup .n{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;margin-bottom:10px;font-weight:700;background:radial-gradient(circle at 35% 30%,#F8E3B3,#D9A85B 60%,#9A6B2A)}
+.tip{margin-top:16px;color:var(--sub);font-size:15px}
+.apply{display:grid;grid-template-columns:200px 1fr;gap:28px;margin-top:30px;background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:28px;align-items:start}
+.apply .badge{aspect-ratio:3/4;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#F3D79C;font-family:var(--display);font-size:22px}
+.apply .badge img{width:84px;height:84px;border-radius:20px}
+.apply h3{font-size:22px;margin-bottom:8px}
+.apply p{color:var(--sub)}
+.apply .actions{margin:18px 0 10px}
+.meta{font-size:14px;color:var(--faint);margin-top:8px}
+.beta-form{width:100%;margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:15px/1.6 var(--body);color:var(--ink);background:var(--card);resize:vertical}
+
+/* 아래 */
+.foot{padding:40px 0 48px;text-align:center;color:#D9C7A8;font-size:14px}
+.foot .logo{justify-content:center;margin-bottom:12px}
+.foot p+p{margin-top:4px}
+.foot .links{margin-top:12px;display:flex;gap:18px;justify-content:center}
+.foot a{color:var(--brass-hi)}
+
+@media (max-width:960px){
+  .hero .wrap{grid-template-columns:1fr}
+  .hero-art{height:500px;max-width:520px;margin:0 auto;width:100%}
+  .values{grid-template-columns:repeat(2,1fr)}
+  .shots{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:16px;margin:30px -20px 0;padding:8px 20px 14px;scrollbar-width:none}
+  .shots::-webkit-scrollbar{display:none}
+  .shots figure{flex:0 0 31%;scroll-snap-align:start}
+  .promise,.story{grid-template-columns:1fr}
+  .flow{grid-template-columns:repeat(2,1fr)}
+  .setup{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:600px){
+  body{font-size:16px}
+  .band{padding:56px 0}
+  .top .wrap{min-height:56px;padding-block:6px}
+  .logo span{font-size:19px}.logo img{width:30px;height:30px}
+  .nav{order:3;width:calc(100% + 40px);margin:0 -20px;padding:2px 20px 6px;flex-wrap:nowrap;overflow-x:auto;gap:18px;font-size:14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{white-space:nowrap}
+  .hero{padding:32px 0 40px}
+  .hero .lead{font-size:16px;margin:16px 0 24px}
+  .hero .actions .btn{flex:1 1 auto;justify-content:center}
+  .hero-art{height:400px}
+  .phone{width:min(48vw,190px);border-radius:24px}.phone.p2{width:min(44vw,172px)}
+  .hero-card{min-width:0;width:max-content;max-width:92%;padding:10px 16px 12px}
+  .hero-card .say{font-size:19px}
+  .values{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .value{padding:16px 14px}
+  .value h3{font-size:17px}
+  .value p{font-size:14px}
+  .value p br{display:none}
+  .flow{grid-template-columns:1fr}
+  .story article{padding:20px}
+  .shots{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:28px -20px 0;padding:8px 20px 14px;scrollbar-width:none}
+  .shots::-webkit-scrollbar{display:none}
+  .shots figure{flex:0 0 62%;scroll-snap-align:center}
+  .shots-note::before{content:"옆으로 밀어 보세요 → ";font-weight:700;color:var(--brass-ink)}
+  .switch{padding:16px 18px}
+  .setup{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .setup li{padding:16px 14px;font-size:15px}
+  .apply{grid-template-columns:1fr;padding:20px;gap:16px}
+  .apply .badge{aspect-ratio:auto;padding:18px;flex-direction:row}
+  .apply .badge img{width:52px;height:52px;border-radius:14px}
+  .apply .actions .btn{flex:1 1 100%;justify-content:center}
+  .switch .pill{margin-left:0}
+}
+@media (max-width:360px){
+  .values,.setup{grid-template-columns:1fr}
+  .hero-art{height:360px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-dial" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+    <symbol id="i-album" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></symbol>
+    <symbol id="i-big" viewBox="0 0 24 24"><path d="M4 18L9 6l5 12M6 14h6"/><path d="M15 18l3-7 3 7M16 16h4"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-no" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M3 15h18M7 5v4M12 5v4M17 5v4M7 15v4M12 15v4M17 15v4"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="사진 쉽게 보기 처음으로"><img src="images/icon.png" alt=""><span>사진 쉽게 보기</span></a>
+    <nav class="nav" aria-label="이 페이지 안 메뉴">
+      <a href="#brand">이런 앱</a>
+      <a href="#why">만든 이야기</a>
+      <a href="#app">화면 둘러보기</a>
+      <a href="#promise">사진은 폰 안에</a>
+      <a href="#beta">베타 신청</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero leather">
+  <div class="wrap">
+    <div class="hero-text">
+      <h1>수천 장의 사진,<br><span class="gold">다이얼 하나로</span> 그때로.</h1>
+      <p class="lead">그때 그 사진을 빨리 찾고, 다시 보고, 나누면서 함께 웃도록.<br>돌리면 한 달씩, 말하면 찾아 줍니다.</p>
+      <div class="actions">
+        <a class="btn primary" href="#beta"><svg class="ic"><use href="#i-mail"/></svg>베타 테스트 신청</a>
+        <a class="btn ghost" href="#app">화면 둘러보기</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-label="다이얼 화면과 크게 보기 화면, 그리고 말로 찾기 예시">
+      <img class="phone p1" src="images/screens/dial.jpg" alt="다이얼 첫 화면: 6월 사진이 필름처럼 넘어감" width="420" height="909">
+      <img class="phone p2" src="images/screens/bigtext.jpg" alt="크게 보기 화면: 큰 버튼과 연도별 사진" width="420" height="909">
+      <div class="hero-card">
+        <div class="from"><svg class="ic"><use href="#i-mic"/></svg>말로 찾기</div>
+        <div class="say">“작년 여름 제주 바다”</div>
+        <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="film" aria-hidden="true"></div>
+
+<!-- ① 이런 앱 -->
+<section class="band white" id="brand">
+  <div class="wrap">
+    <div class="eyebrow">이런 앱</div>
+    <h2>스크롤 대신, 다이얼</h2>
+    <p class="intro">옛 라디오 주파수를 맞추듯, 다이얼을 돌려 그때로 갑니다. 사진첩을 끝없이 밀어 올리지 않아도 됩니다.</p>
+    <div class="values">
+      <div class="value"><svg class="ic"><use href="#i-dial"/></svg><h3>다이얼로 그때로</h3><p>돌리면 한 달씩.<br>달마다 잘 나온 사진이 표지로</p></div>
+      <div class="value"><svg class="ic"><use href="#i-mic"/></svg><h3>말로 찾기</h3><p>“작년 여름 바다”처럼<br>말하면 찾아 줍니다</p></div>
+      <div class="value"><svg class="ic"><use href="#i-album"/></svg><h3>꾸욱 눌러 앨범</h3><p>한 장을 여러 앨범에 넣어도<br>용량은 그대로</p></div>
+      <div class="value"><svg class="ic"><use href="#i-film"/></svg><h3>영상 만들어 나누기</h3><p>고른 사진으로 짧은 영상,<br>가족 대화방에 바로</p></div>
+      <div class="value"><svg class="ic"><use href="#i-big"/></svg><h3>크게 보기</h3><p>버튼 하나로 큰 글씨·<br>큰 버튼 화면으로</p></div>
+      <div class="value"><svg class="ic"><use href="#i-lock"/></svg><h3>사진은 폰 안에</h3><p>회원가입·광고 없이,<br>사진을 서버로 보내지 않습니다</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ② 만든 이야기 (대표가 말한 것만으로 쓴 초안. 대표 글로 바꿔 넣을 자리) -->
+<section class="band cream" id="why">
+  <div class="wrap">
+    <div class="eyebrow">만든 이야기</div>
+    <h2>왜 만들었나</h2>
+    <div class="story">
+      <article>
+        <div class="label">시작은 어머니였습니다</div>
+        <h3>손주 사진 한 장에 15분</h3>
+        <p>손주 사진 한 장을 찾느라 15분 넘게 화면을 넘기고 계시는 어머니를 보다가 시작했다.</p>
+        <p>클라우드 동기화는 어렵고 헷갈리는 것이 많다. 휴대전화에 기본으로 들어 있는 갤러리 앱도 쓰는 사람에게 친절하지 않다.</p>
+        <p class="turn">우리는 그저 그때 그 사진을 빨리 찾고, 다시 보고, 나누면서 함께 웃고 싶다.</p>
+      </article>
+      <article>
+        <div class="label">부모님을 위해 만들다가</div>
+        <h3>내가 먼저 쓰고 싶어졌다</h3>
+        <p>부모님을 위해 잘 보이고 직관적인 화면을 고민했는데, 만들다 보니 내가 너무 쓰고 싶어졌다. 그래서 기본 화면은 누구나 쓰고 싶은 모양으로 두고, 더 나이 많은 어르신을 위한 큰 메뉴 버전을 함께 넣었다.</p>
+        <p>장소별·사람별·시기별로 빠르게 찾고, 앨범은 간편하게 만든다. 간단한 영상을 만들어 나누는 것도 된다.</p>
+        <p class="turn">부모님께 권해 드리면, 아주 좋아하실 것이다.</p>
+      </article>
+    </div>
+
+    <h3 class="sub-title">그래서 이렇게 만들었습니다</h3>
+    <div class="flow">
+      <div class="step">
+        <div class="step-no">1</div>
+        <h4>돌린다</h4>
+        <div class="viz viz-dial" aria-hidden="true"><div class="knob"></div><div class="yr"><b>2006년 6월</b>사진 212장</div></div>
+        <p>다이얼을 돌리면 한 달씩. 해와 달이 바로 보입니다.</p>
+      </div>
+      <div class="step">
+        <div class="step-no">2</div>
+        <h4>말한다</h4>
+        <div class="viz viz-voice" aria-hidden="true"><span class="q">“강아지랑 바다”</span><span class="tags"><span>강아지</span><span>바다</span></span></div>
+        <p>사진 속 내용과 사람, 장소를 알아 두었다가 말로 찾습니다.</p>
+      </div>
+      <div class="step">
+        <div class="step-no">3</div>
+        <h4>꾸욱 누른다</h4>
+        <div class="viz viz-press" aria-hidden="true"><span class="tile"></span><span class="arrow">→</span><span class="album">＋ 가족 여행</span></div>
+        <p>마음에 드는 사진은 꾸욱 눌러 앨범에. 많이 찍은 날은 앨범이 저절로 생깁니다.</p>
+      </div>
+      <div class="step">
+        <div class="step-no">4</div>
+        <h4>나눈다</h4>
+        <div class="viz viz-share" aria-hidden="true"><span class="reel"><i></i><i></i><i></i></span><span class="arrow">→</span><span class="album">▶ 보내기</span></div>
+        <p>고른 사진으로 짧은 영상을 만들어 가족 대화방에 보냅니다.</p>
+      </div>
+    </div>
+    <div class="origin"><svg class="ic"><use href="#i-note"/></svg><p><b>다음에 올 것.</b> 즐겨 보는 사진으로 만든 앨범을 실물 앨범이나 액자로 이어 보려 합니다.</p></div>
+  </div>
+</section>
+
+<!-- ③ 화면 둘러보기 -->
+<section class="band white" id="app">
+  <div class="wrap">
+    <div class="eyebrow">화면 둘러보기</div>
+    <h2>한 손으로, 그때로</h2>
+    <p class="intro">안드로이드 휴대폰에 있는 사진을 그대로 읽어 보여 줍니다. 사진을 옮기거나 새로 올릴 필요가 없습니다.</p>
+    <div class="shots">
+      <figure><div class="shot"><img src="images/screens/dial.jpg" alt="다이얼 첫 화면" width="420" height="909"></div><figcaption><b>다이얼</b>돌리면 한 달씩, 필름처럼</figcaption></figure>
+      <figure><div class="shot"><img src="images/screens/voice.jpg" alt="말로 찾기 화면" width="420" height="909"></div><figcaption><b>말로 찾기</b>손을 떼도 끝까지 들어요</figcaption></figure>
+      <figure><div class="shot"><img src="images/screens/found.jpg" alt="찾은 사진 화면" width="420" height="909"></div><figcaption><b>찾은 사진</b>사진 속 내용까지 알아봐요</figcaption></figure>
+      <figure><div class="shot"><img src="images/screens/people.jpg" alt="사람 확인 화면" width="420" height="909"></div><figcaption><b>사람별 보기</b>“엄마 맞아요?” 답하면 모여요</figcaption></figure>
+      <figure><div class="shot"><img src="images/screens/bigtext.jpg" alt="크게 보기 화면" width="420" height="909"></div><figcaption><b>크게 보기</b>저시력·어르신용 큰 화면</figcaption></figure>
+    </div>
+    <p class="shots-note">화면 속 사진과 인물은 예시입니다.</p>
+    <div class="switch">
+      <div><h3>두 가지 화면, 버튼 하나로</h3><p>기본은 가죽과 황동 다이얼의 스타일 화면. 부모님 휴대폰에는 설정에서 ‘크게 보기’를 켜 드리세요.</p></div>
+      <div class="pill" aria-hidden="true"><span class="on">스타일</span><span>크게 보기</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ④ 사진은 폰 안에 (개인정보처리방침과 같은 내용. 불리한 것도 빼지 않음) -->
+<section class="band leather" id="promise">
+  <div class="wrap">
+    <div class="eyebrow">사진은 폰 안에</div>
+    <h2>앱이 하는 일, 하지 않는 일</h2>
+    <p class="intro">가족 사진을 다루는 앱이라 숨기지 않고 적습니다. 개인정보처리방침과 같은 내용입니다.</p>
+    <div class="promise">
+      <div class="pcard in"><h3><svg class="ic"><use href="#i-phone"/></svg>휴대폰 안에서만</h3><ul>
+        <li>사진 읽기 — 사진을 복사하거나 옮기지 않습니다</li>
+        <li>앨범·즐겨찾기 — 사진 번호와 이름만 적어 둡니다</li>
+        <li>사진 내용 알아보기 (‘바다’, ‘강아지’) — 휴대폰 안의 인식 모델로</li>
+        <li>사람별 보기 — 직접 켰을 때만, 얼굴 특징값을 휴대폰 안에서 계산</li>
+        <li>앱을 지우면 이 기록도 함께 지워집니다</li>
+      </ul></div>
+      <div class="pcard out"><h3><svg class="ic"><use href="#i-out"/></svg>밖으로 나가는 것</h3><ul>
+        <li>장소 이름: 사진의 위도·경도만 휴대폰 기본 위치 서비스(구글)에 물어봅니다. 사진은 보내지 않습니다</li>
+        <li>말로 찾기: 휴대폰의 음성 인식이 처리하며, 기기에 따라 구글 음성 인식을 거칠 수 있습니다. 녹음은 저장하지 않습니다</li>
+        <li>구글 ML Kit가 오류 진단용으로 기기 모델·안드로이드 버전·성능 수치를 구글에 보냅니다 (사진·얼굴·음성은 아님)</li>
+      </ul></div>
+      <div class="pcard no"><h3><svg class="ic"><use href="#i-no"/></svg>하지 않는 것</h3><ul>
+        <li>회원가입</li>
+        <li>광고, 사용 분석 도구</li>
+        <li>사진·얼굴 정보를 회사 서버로 보내기</li>
+        <li>개인정보 판매·제3자 제공</li>
+        <li>바로 지우기 — 지운 사진은 휴대폰 휴지통으로 가고, 안드로이드가 먼저 확인합니다</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ 처음 쓰는 날 -->
+<section class="band cream" id="start">
+  <div class="wrap">
+    <div class="eyebrow">처음 쓰는 날</div>
+    <h2>네 단계면 됩니다</h2>
+    <ol class="setup">
+      <li><span class="n">1</span>Play 스토어에서<br>‘사진 쉽게 보기’ 설치</li>
+      <li><span class="n">2</span>사진 보기를<br>‘허용’</li>
+      <li><span class="n">3</span>다이얼을 돌려<br>그달로 가 보기</li>
+      <li><span class="n">4</span>마음에 드는 사진을<br>꾸욱 눌러 첫 앨범</li>
+    </ol>
+    <p class="tip">처음 켜면 사진 내용과 위치를 뒤에서 천천히 살펴 둡니다. 사진이 많으면 말로 찾기가 다 준비되기까지 시간이 걸릴 수 있습니다.</p>
+  </div>
+</section>
+
+<!-- ⑥ 베타 신청. 메일로 받고 대표가 Play 테스터 목록에 손으로 넣음 — 이 홈페이지는 아무것도 모으지 않음 -->
+<section class="band white" id="beta">
+  <div class="wrap">
+    <div class="eyebrow">베타 테스트</div>
+    <h2>먼저 써 볼 분을 찾습니다</h2>
+    <p class="intro">Google Play 비공개 테스트로, 신청하신 계정에서만 받을 수 있습니다. 안드로이드 휴대폰에서만 됩니다.</p>
+    <ol class="setup">
+      <li><span class="n">1</span>아래 버튼으로<br>신청 메일 보내기</li>
+      <li><span class="n">2</span>답장으로 온 참여 링크에서<br>[테스터 되기]</li>
+      <li><span class="n">3</span>Play 스토어에서<br>설치</li>
+      <li><span class="n">4</span>2주 동안 써 보고<br>의견 들려주기</li>
+    </ol>
+    <div class="apply">
+      <div class="badge leather" aria-hidden="true"><img src="images/icon.png" alt=""><span>베타</span></div>
+      <div>
+        <h3>휴대폰에 로그인된 Google 계정을 적어 주세요</h3>
+        <p>Play는 목록에 넣은 Google 계정에서만 앱을 열어 줍니다. 부모님 휴대폰에 깔아 드리려면 부모님 휴대폰의 계정도 함께 적어 주세요.</p>
+        <div class="actions">
+          <a class="btn primary" id="mail-link" href="#"><svg class="ic"><use href="#i-mail"/></svg>메일 앱으로 보내기</a>
+          <a class="btn line" id="gmail-link" href="#" target="_blank" rel="noopener">Gmail로 쓰기</a>
+          <button class="btn line" type="button" id="copy-form">양식 복사하기</button>
+        </div>
+        <p class="meta" id="copy-done" hidden>복사했어요. 메일이나 카톡에 붙여 넣어 dgc.official.2026@gmail.com 으로 보내 주세요.</p>
+        <textarea id="beta-form" class="beta-form" readonly rows="8" aria-label="신청 양식">사진 쉽게 보기 베타 테스트를 신청합니다.
+
+1. 휴대폰에 로그인된 Google 계정(Gmail):
+2. 함께 쓰실 분 계정 (예: 부모님 휴대폰, 없으면 비워 두세요):
+3. 휴대폰 기종 (예: 갤럭시 S23):
+
+하고 싶은 말이 있으면 자유롭게 적어 주세요.</textarea>
+        <p class="meta">메일이 안 열리면 위 양식을 복사해 dgc.official.2026@gmail.com 으로 보내 주세요 · 받은 계정은 베타 초대에만 쓰고, 베타가 끝나면 지웁니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="film" aria-hidden="true"></div>
+<footer class="foot leather">
+  <div class="wrap">
+    <div class="logo" aria-hidden="true"><img src="images/icon.png" alt=""><span>사진 쉽게 보기</span></div>
+    <p>똥개미컴퍼니(DGC) · 문의 dgc.official.2026@gmail.com</p>
+    <p>광고를 붙이지 않습니다. 이 홈페이지는 방문 기록을 모으지 않습니다.</p>
+    <div class="links"><a href="https://dylandgc.github.io/photo-easy-policy/">개인정보처리방침</a></div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var to = 'dgc.official.2026@gmail.com';
+  var subject = '사진 쉽게 보기 베타 테스트 신청';
+  var body = document.getElementById('beta-form').value;
+  document.getElementById('mail-link').href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  document.getElementById('gmail-link').href = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(to) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  // 양식 복사 — 아무 데도 보내지 않고 복사만 합니다
+  document.getElementById('copy-form').addEventListener('click', function () {
+    var t = document.getElementById('beta-form');
+    var done = function () { document.getElementById('copy-done').hidden = false; };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(t.value).then(done, function () { t.select(); });
+    } else { t.focus(); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} }
+  });
+})();
+</script>
+</body>
+</html>
