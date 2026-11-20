@@ -451,10 +451,11 @@ p{margin:0}
         <p>휴대폰에 로그인된 Google 계정으로 순서대로 눌러 주세요. 신청 목록에 들어간 계정만 열립니다.</p>
       </div>
       <div class="dl-steps">
-        <a class="btn primary" href="https://play.google.com/apps/testing/com.dgc.photoeasy" target="_blank" rel="noopener"><span class="num">①</span>테스터 되기</a>
-        <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dgc.photoeasy" target="_blank" rel="noopener"><svg class="ic"><use href="#i-down"/></svg><span class="num">②</span>Play 스토어에서 받기</a>
+        <a class="btn primary play-link" href="https://play.google.com/apps/testing/com.dgc.photoeasy" target="_blank" rel="noopener"><span class="num">①</span>테스터 되기</a>
+        <a class="btn primary play-link" href="https://play.google.com/store/apps/details?id=com.dgc.photoeasy" target="_blank" rel="noopener"><svg class="ic"><use href="#i-down"/></svg><span class="num">②</span>Play 스토어에서 받기</a>
       </div>
-      <p class="meta">① 화면에서 [테스터 되기]를 누른 뒤 몇 분 지나 ②를 눌러 주세요 · "이 앱을 찾을 수 없다"고 나오면 아직 신청 목록에 없는 계정이에요 · 안드로이드 휴대폰 전용</p>
+      <p class="meta">① 화면에서 [테스터 되기]를 누르면 그 화면에 'Google Play에서 다운로드'가 나와요. ②는 이미 테스터가 된 분이 다시 받을 때 쓰세요 · "요청한 URL을 찾을 수 없다"고 나오면: 카카오톡·네이버 안의 화면이면 <b>Chrome으로 열어</b> 주시고, Chrome에서도 그러면 아직 신청 목록에 없는 계정이에요 · 안드로이드 휴대폰 전용</p>
+      <p class="meta inapp-note" hidden>지금 앱 안의 브라우저로 보고 계세요. 구글 로그인이 안 되어 있어 열리지 않을 수 있어요. 오른쪽 아래 메뉴에서 <b>다른 브라우저로 열기</b>를 눌러 주세요.</p>
     </div>
     <div class="apply">
       <div class="badge leather" aria-hidden="true"><img src="images/icon.png" alt=""><span>베타</span></div>
@@ -506,6 +507,25 @@ p{margin:0}
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(t.value).then(done, function () { t.select(); });
     } else { t.focus(); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} }
+  });
+})();
+</script>
+<script>
+// 카카오톡·네이버 등 앱 안 브라우저는 구글 로그인이 없어 Play 테스트 페이지가 '찾을 수 없음'으로 뜸 → 휴대폰 기본 브라우저로 열기 (2026-11-20)
+(function(){
+  var ua = navigator.userAgent || "";
+  var inKakao = /KAKAOTALK/i.test(ua);
+  var inApp = inKakao || /NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(ua);
+  if (!inApp) return;
+  document.querySelectorAll('.inapp-note').forEach(function(n){ n.hidden = false; });
+  document.querySelectorAll('a.play-link').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var url = a.href;
+      if (inKakao) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url); return; }
+      // 안드로이드: Chrome으로 열기
+      location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+    });
   });
 })();
 </script>
