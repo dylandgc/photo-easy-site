@@ -228,6 +228,15 @@ p{margin:0}
   .values,.setup{grid-template-columns:1fr}
   .hero-art{height:360px}
 }
+.only-android{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;color:rgba(246,233,211,.78)}
+.only-android .ic{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.download{margin-top:30px;background:linear-gradient(#3A2414,#2A1B10);color:#F6E9D3;border-radius:22px;padding:26px 28px}
+.download h3{color:#F3D79C;font-size:22px}
+.download .dl-head p{margin:8px 0 0;color:rgba(246,233,211,.85)}
+.dl-steps{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.dl-steps .num{font-size:18px}
+.download .meta{color:rgba(246,233,211,.7);margin-top:14px}
+@media (max-width:640px){.dl-steps .btn{flex:1 1 100%;justify-content:center}.download{padding:22px 18px}}
 </style>
 </head>
 <body>
@@ -270,9 +279,10 @@ p{margin:0}
       <h1>수천 장의 사진,<br><span class="gold">다이얼 하나로</span> 그때로.</h1>
       <p class="lead">그때 그 사진을 빨리 찾고, 다시 보고, 나누면서 함께 웃도록.<br>돌리면 한 달씩, 말하면 찾아 줍니다.</p>
       <div class="actions">
-        <a class="btn primary" href="#beta"><svg class="ic"><use href="#i-mail"/></svg>베타 테스트 신청</a>
-        <a class="btn ghost" href="#app">화면 둘러보기</a>
+        <a class="btn primary" href="#download"><svg class="ic"><use href="#i-down"/></svg>베타 다운로드하기</a>
+        <a class="btn ghost" href="#beta">베타 테스트 신청</a>
       </div>
+      <p class="only-android"><svg class="ic"><use href="#i-phone"/></svg>지금은 안드로이드(Google Play)용만 있어요 · 아이폰은 아직 준비 중</p>
     </div>
     <div class="hero-art" aria-label="다이얼 화면과 크게 보기 화면, 그리고 말로 찾기 예시">
       <img class="phone p1" src="images/screens/dial.jpg" alt="다이얼 첫 화면: 6월 사진이 필름처럼 넘어감" width="420" height="909">
@@ -428,13 +438,24 @@ p{margin:0}
   <div class="wrap">
     <div class="eyebrow">베타 테스트</div>
     <h2>먼저 써 볼 분을 찾습니다</h2>
-    <p class="intro">Google Play 비공개 테스트로, 신청하신 계정에서만 받을 수 있습니다. 안드로이드 휴대폰에서만 됩니다.</p>
+    <p class="intro">Google Play 비공개 테스트로, 신청하신 계정에서만 받을 수 있습니다. <b>지금은 안드로이드 휴대폰(Google Play 스토어)용만 개발되어 있어요.</b> 아이폰(App Store) 버전은 아직 없습니다.</p>
     <ol class="setup">
       <li><span class="n">1</span>아래 버튼으로<br>신청 메일 보내기</li>
-      <li><span class="n">2</span>답장으로 온 참여 링크에서<br>[테스터 되기]</li>
-      <li><span class="n">3</span>Play 스토어에서<br>설치</li>
+      <li><span class="n">2</span>아래 ① 버튼에서<br>[테스터 되기]</li>
+      <li><span class="n">3</span>아래 ② 버튼으로<br>Play 스토어에서 설치</li>
       <li><span class="n">4</span>2주 동안 써 보고<br>의견 들려주기</li>
     </ol>
+    <div class="download" id="download">
+      <div class="dl-head">
+        <h3>신청이 끝났다면, 여기서 받으세요</h3>
+        <p>휴대폰에 로그인된 Google 계정으로 순서대로 눌러 주세요. 신청 목록에 들어간 계정만 열립니다.</p>
+      </div>
+      <div class="dl-steps">
+        <a class="btn primary" href="https://play.google.com/apps/testing/com.dgc.photoeasy" target="_blank" rel="noopener"><span class="num">①</span>테스터 되기</a>
+        <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dgc.photoeasy" target="_blank" rel="noopener"><svg class="ic"><use href="#i-down"/></svg><span class="num">②</span>Play 스토어에서 받기</a>
+      </div>
+      <p class="meta">① 화면에서 [테스터 되기]를 누른 뒤 몇 분 지나 ②를 눌러 주세요 · "이 앱을 찾을 수 없다"고 나오면 아직 신청 목록에 없는 계정이에요 · 안드로이드 휴대폰 전용</p>
+    </div>
     <div class="apply">
       <div class="badge leather" aria-hidden="true"><img src="images/icon.png" alt=""><span>베타</span></div>
       <div>
